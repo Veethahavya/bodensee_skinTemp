@@ -37,7 +37,7 @@ def func(T,t):
     x = (Q + Rs - R_d)/(d*ro_w*cw*v/(v+1))
 
     k = 0.4
-    alpha_w = 210e-6 #thermal expansion coeff of water at 20C
+    alpha_w = 210e-6 #assumed thermal expansion coeff of water at 20C
     g = 9.8
     Fd = ((v*g*alpha_w/5*d)**0.5)*ro_w*cw*uw_str[int(t)]**2*T
     L = ro_w*cw*uw_str[int(t)]**3/(k*Fd)
