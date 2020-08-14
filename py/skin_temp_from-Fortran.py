@@ -152,4 +152,4 @@ del save_results, get_T_full
 del_inp_df = 1
 if del_inp_df == 1:
     del dfLH, dfLW, dfSH, dfSW, dfU_str, dfTb
-del del_inp_df, ax, fig, i
+del del_inp_df, ax, fig, i, dt, t
