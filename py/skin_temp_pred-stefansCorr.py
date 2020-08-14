@@ -1,11 +1,11 @@
 from scipy import integrate
 import pandas as pd
-import math
 import matplotlib.pyplot as plt
 import numpy as np
-import time
+import math, time, sys
 
-#%% Data Import
+
+#%% Data Reads
 dfLH = pd.read_csv('..\data\heatflux_latent.dat', sep="\s+", names=['Date','Time', 'LH'])
 LH = dfLH['LH'].tolist()
 
@@ -22,7 +22,9 @@ dfUwstr = pd.read_csv(r'..\data\ustar.dat', sep="\s+", names=['Date','Time', 'Uw
 Uw_str = dfUwstr['Uw_str'].tolist()
 
 time_check = dfLH['Time'].all() == dfSH['Time'].all() == dfLW['Time'].all()
-
+if not time_check:
+    print('Time series of the input data do not match. Exiting.')
+    sys.exit(0)
 
 #%% ODE function definition
 #Interpolation function for smaller dt chosen by the solver
@@ -48,7 +50,8 @@ def func(T, t):
     d = 1
     albedo = 0.09
     Rs = (1.0 - albedo) * interpolate(SW, t)
-    R_d = (a1*math.exp(-d*b1) + a2*math.exp(-d*b2) + a3*math.exp(-d*b3))*Rs
+    R_d = (1 - a2*math.exp(-d*b2) - a3*math.exp(-d*b3))*Rs
+    #R_d = (a1*math.exp(-d*b1) + a2*math.exp(-d*b2) + a3*math.exp(-d*b3))*Rs
 
     ro_w = 1000
     cw = 4174
@@ -83,13 +86,14 @@ if time_check: t = list(range(len(LH)))
 T = integrate.odeint(func, y0, t)
 
 #%%Post-processing
-
+save_results = 0
 #Save DF output as .dat
 dfT = pd.DataFrame(T, columns=['dTdt'])
 dfT['Datetime'] = pd.to_datetime(dfLH['Date'] + ' ' + dfLH['Time'], format='%d%m%Y %H:%M:%S', errors='ignore')
 dfT = dfT.set_index('Datetime')
 dat_path = r'..\results\dTdt_' + time.strftime("%Y%m%d%H%M%S") + '.dat'
-dfT.to_csv(dat_path, sep = ' ')
+if save_results == 1:
+    dfT.to_csv(dat_path, sep = ' ')
 
 #Plot and save figure
 plt.figure(figsize=(20,6), dpi=120)
@@ -98,7 +102,8 @@ ax = plt.axes()
 ax.xaxis.set_major_locator(plt.MaxNLocator(8))
 dfT.plot(ax=ax)
 png_path = r'..\results\dTdt_' + time.strftime("%Y%m%d%H%M%S") + '.png'
-plt.savefig(png_path)
+if save_results == 1:
+    plt.savefig(png_path)
 
 #Change index of input DFs to datetime
 dfLH['Datetime'] = pd.to_datetime(dfLH['Date'] + ' ' + dfLH['Time'], format='%d%m%Y %H:%M:%S', errors='ignore')
@@ -111,7 +116,7 @@ dfSW['Datetime'] = pd.to_datetime(dfSW['Date'] + ' ' + dfSW['Time'], format='%d%
 dfSW = dfSW.set_index('Datetime')
 dfUwstr['Datetime'] = pd.to_datetime(dfUwstr['Date'] + ' ' + dfUwstr['Time'], format='%d%m%Y %H:%M:%S', errors='ignore')
 dfUwstr = dfUwstr.set_index('Datetime')
-
+# .nlargest(20, "").index.values   .nsmallest(20, "").index.values
 
 #%% Clearing unwanted variables
-del T, ax, dat_path, png_path, t, y0, Uw_str, #dfLH, dfLW, dfSH, dfSW, dfUwstr
+del T, ax, dat_path, png_path, t, y0, Uw_str, save_results, #dfLH, dfLW, dfSH, dfSW, dfUwstr
