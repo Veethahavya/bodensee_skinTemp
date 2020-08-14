@@ -110,7 +110,7 @@ for i in range(0,len(t)):
     res['Ts'].append(res['ts'])
 
 #%%Post-processing
-save_results = 1
+save_results = 0
 get_T_full = 0
 
 #Save the result as a DF and save it as .dat if specified
